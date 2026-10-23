@@ -53,7 +53,16 @@ On macOS/Linux, use `./gradlew assembleDebug` (or `bash ./gradlew assembleDebug`
 
 To use Android Studio, run `npm run android:open`. Run `npm run android:sync` after every web change you want included in an APK. There is no live development server URL in the shipping configuration.
 
-The GitHub Actions workflow verifies the app and builds a debug APK artifact when this project is pushed to GitHub. The workflow has been written but has not been executed in this local environment.
+### Build on GitHub without local Android tools
+
+1. Open the repository's **Actions** tab and select **Build APK**.
+2. Click **Run workflow**, choose `main`, and click **Run workflow** again.
+3. Open the completed run and download **painter-debug-apk-N** from **Artifacts**, or use the download link in the run summary.
+4. Extract the ZIP and transfer `app-debug.apk` to your Android phone. Open it and allow installation from that source if Android prompts you.
+
+The manual workflow is `.github/workflows/build-apk.yml`. It installs Java 21 and Android SDK 36, runs unit tests, builds the web app, synchronizes Capacitor, and uploads an installable debug APK for 30 days. No signing secrets or local Android setup are needed. The separate **Verify and build Android** workflow also runs browser tests on pushes and pull requests.
+
+Fresh GitHub runners may generate different debug signing keys, so an APK may not install over an earlier test build. Uninstalling the old app removes its local drawings; export anything you want to keep first. Use a stable production signing identity for releases and reliable updates. These workflows have not been executed in this local environment.
 
 ### Signed release
 
