@@ -1,0 +1,11 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+*.local
+*.jks
+*.keystore
+android/local.properties
+android/.gradle/
+android/**/build/
+.tools/
