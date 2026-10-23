@@ -14,6 +14,7 @@ export type Drawing = {
   rendererVersion: 1;
   id: string;
   name: string;
+  needsDetails?: boolean;
   createdAt: string;
   updatedAt: string;
   revision: number;
@@ -81,6 +82,7 @@ export function validate(value: unknown): Drawing {
   if (
     !/^[a-zA-Z0-9-]{1,80}$/.test(d.id) ||
     typeof d.name !== 'string' ||
+    (d.needsDetails !== undefined && typeof d.needsDetails !== 'boolean') ||
     d.name.length > 120 ||
     !Number.isInteger(d.revision) ||
     d.revision < 0 ||

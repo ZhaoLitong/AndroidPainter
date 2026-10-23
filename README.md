@@ -79,6 +79,8 @@ Set secrets securely in your shell or CI secret store, then run `gradlew.bat ass
 
 ## Drawing and storage
 
+- **New drawing** opens a white 1080 × 1440 canvas immediately, with no setup or initial save required. Back asks for a name and offers Save drawing, Keep drawing, or Discard drawing. Automatic draft recovery remains enabled; reopened unfinished drafts still ask for details on exit. Existing named drawings continue to autosave and return directly to the gallery.
+
 - Tap for a dot, drag to draw, or choose a geometric shape and drag its bounding box.
 - Two fingers pan and zoom; the second finger cancels the uncommitted stroke. Fit to screen resets the viewport.
 - Shapes support outline, fill, both, and a square/circle constraint. Committed objects are not individually editable.

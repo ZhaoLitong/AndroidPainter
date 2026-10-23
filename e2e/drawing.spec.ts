@@ -1,9 +1,31 @@
 import { test, expect } from '@playwright/test';
+test('new drawing opens immediately, back can resume or discard a recovered draft', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'New drawing', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  const canvas = page.locator('canvas');
+  await expect(canvas).toBeVisible();
+  await canvas.click();
+  await expect(page.getByRole('status')).toHaveText('Saved');
+  await page.getByRole('button', { name: 'Back to drawings', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Save your drawing' })).toBeVisible();
+  await page.getByRole('button', { name: 'Keep drawing', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeEnabled();
+  await page.reload();
+  await page.getByRole('button', { name: 'Open Untitled drawing', exact: true }).click();
+  await page.getByRole('button', { name: 'Back to drawings', exact: true }).click();
+  await page.getByRole('button', { name: 'Discard drawing', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'New drawing', exact: true })).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole('button', { name: 'Open Untitled drawing', exact: true }),
+  ).toHaveCount(0);
+});
 test('create, draw, undo/redo, erase, autosave, reopen, and export', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'New drawing', exact: true }).click();
-  await page.getByLabel('Drawing name').fill('My first drawing');
-  await page.getByRole('button', { name: 'Create drawing', exact: true }).click();
   const canvas = page.getByLabel('Drawing canvas.', { exact: false });
   await expect(canvas).toBeVisible();
   const box = (await canvas.boundingBox())!;
@@ -21,6 +43,8 @@ test('create, draw, undo/redo, erase, autosave, reopen, and export', async ({ pa
   await page.mouse.click(x, y);
   await expect(page.getByRole('status')).toHaveText('Saved');
   await page.getByRole('button', { name: 'Back to drawings', exact: true }).click();
+  await page.getByLabel('Drawing name').fill('My first drawing');
+  await page.getByRole('button', { name: 'Save drawing', exact: true }).click();
   await page.getByRole('button', { name: 'Open My first drawing', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeEnabled();
   const download = page.waitForEvent('download');
@@ -36,7 +60,6 @@ test('shape controls, undoable clear, rename, and deletion', async ({ page }) =>
   await page.goto('/');
   await page.screenshot({ path: 'test-results/gallery-mobile.png' });
   await page.getByRole('button', { name: 'New drawing', exact: true }).click();
-  await page.getByRole('button', { name: 'Create drawing', exact: true }).click();
   await page.getByRole('button', { name: 'Rectangle', exact: true }).click();
   await page.getByLabel('Shape style').selectOption('both');
   await page.getByLabel('Square', { exact: true }).check();
@@ -51,6 +74,7 @@ test('shape controls, undoable clear, rename, and deletion', async ({ page }) =>
   await page.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Redo', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Back to drawings', exact: true }).click();
+  await page.getByRole('button', { name: 'Save drawing', exact: true }).click();
   await page.getByRole('button', { name: 'Rename', exact: true }).click();
   await page.getByLabel('Drawing name').fill('Renamed');
   await page.getByRole('button', { name: 'Save name', exact: true }).click();
@@ -104,7 +128,6 @@ test('renderer preserves alpha, erases transparently, and uses document export d
 test('second pointer cancels a pending stroke and navigation leaves no mark', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'New drawing', exact: true }).click();
-  await page.getByRole('button', { name: 'Create drawing', exact: true }).click();
   const canvas = page.locator('canvas');
   const box = (await canvas.boundingBox())!;
   const session = await page.context().newCDPSession(page);

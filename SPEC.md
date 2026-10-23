@@ -8,6 +8,8 @@ Date: 2026-10-23
 
 ## 1. Purpose
 
+Updated interaction: New drawing opens a default white 1080 × 1440 canvas immediately. Creation-time configuration is replaced by an exit-time name prompt with save, continue drawing, and discard actions. Canvas dimensions and background stay fixed; unfinished drafts retain automatic recovery and the exit prompt across restarts. This supersedes the original creation-form requirements below.
+
 Build an offline Android drawing app that lets users draw with a finger, choose any standard RGB color, adjust pen sizes, create basic geometric shapes, erase content, and save or share their work.
 
 The initial release prioritizes predictable tools, responsive input, and reliable local saving. It is a drawing app for casual use, not a professional painting suite.

@@ -69,9 +69,9 @@ export function App() {
     [redo, setRedo] = useState<Operation[]>([]),
     [entries, setEntries] = useState<ProjectEntry[]>([]),
     [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState<'new' | 'colors' | 'menu' | 'help' | 'clear' | 'leave' | null>(
-      null,
-    ),
+  const [modal, setModal] = useState<
+      'details' | 'colors' | 'menu' | 'help' | 'clear' | 'leave' | null
+    >(null),
     [deleting, setDeleting] = useState<ProjectEntry | null>(null),
     [renaming, setRenaming] = useState<Drawing | null>(null);
   const [status, setStatus] = useState('Saved'),
@@ -81,6 +81,7 @@ export function App() {
   const dirtySince = useRef<number | null>(null),
     canvasHandle = useRef<CanvasHandle | null>(null),
     leaving = useRef(false),
+    discarding = useRef(false),
     savedRevision = useRef(-1),
     saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined),
     mounted = useRef(true);
@@ -115,6 +116,7 @@ export function App() {
     }
   }, [style, recent]);
   const save = useCallback(async () => {
+    if (discarding.current) return false;
     clearTimeout(saveTimer.current);
     const current = docRef.current;
     if (!current) return true;
@@ -152,6 +154,10 @@ export function App() {
   );
   const leave = useCallback(async () => {
     if (leaving.current) return;
+    if (docRef.current?.needsDetails) {
+      setModal('details');
+      return;
+    }
     leaving.current = true;
     try {
       while (docRef.current) {
@@ -230,6 +236,16 @@ export function App() {
         'Recovered the last readable version. Some recent changes may be missing. Save to keep this recovered drawing.',
       );
   }
+  function startDrawing() {
+    const names = new Set(entries.map((entry) => entry.document?.name));
+    let name = 'Untitled drawing',
+      suffix = 2;
+    while (names.has(name)) name = `Untitled drawing ${suffix++}`;
+    const draft = { ...createDrawing(name, 1080, 1440, '#ffffff'), needsDetails: true };
+    open(draft);
+    savedRevision.current = -1;
+    setStatus('Draft');
+  }
   function commit(op: Operation) {
     const current = docRef.current;
     if (!current) return;
@@ -299,7 +315,7 @@ export function App() {
                 </h1>
                 <p className="intro">A blank canvas. A few good tools. Endless possibilities.</p>
               </div>
-              <button className="primary" onClick={() => setModal('new')}>
+              <button className="primary" onClick={startDrawing}>
                 <Icon name="plus" />
                 New drawing
               </button>
@@ -314,7 +330,7 @@ export function App() {
               <p role="status">Opening your sketchbook…</p>
             ) : (
               <div className="project-grid">
-                <button className="new-card" onClick={() => setModal('new')}>
+                <button className="new-card" onClick={startDrawing}>
                   <span>
                     <Icon name="plus" size={30} />
                   </span>
@@ -520,22 +536,42 @@ export function App() {
           </button>
         </div>
       )}
-      {modal === 'new' && (
-        <NewProject
-          count={entries.length}
+      {modal === 'details' && doc && (
+        <DrawingDetails
+          document={doc}
+          busy={busy}
           onClose={() => setModal(null)}
-          onCreate={async (d) => {
+          onSave={async (name) => {
+            const current = docRef.current;
+            if (!current) return;
             setBusy(true);
+            update(changed({ ...current, name, needsDetails: false }));
             try {
-              await projects.save(d);
-              open(d);
-            } catch (e) {
-              report('Could not create drawing: ' + (e as Error).message);
+              await leave();
             } finally {
               setBusy(false);
             }
           }}
-          busy={busy}
+          onDiscard={async () => {
+            const current = docRef.current;
+            if (!current) return;
+            clearTimeout(saveTimer.current);
+            discarding.current = true;
+            setBusy(true);
+            try {
+              await projects.delete(current.id);
+              docRef.current = null;
+              setDoc(null);
+              setRedo([]);
+              setModal(null);
+              await refresh();
+            } catch (e) {
+              report('Could not discard drawing: ' + (e as Error).message);
+            } finally {
+              discarding.current = false;
+              setBusy(false);
+            }
+          }}
         />
       )}
       {modal === 'colors' && (
@@ -771,34 +807,31 @@ function Rename({
     </Modal>
   );
 }
-function NewProject({
-  count,
-  onClose,
-  onCreate,
+function DrawingDetails({
+  document,
   busy,
+  onClose,
+  onSave,
+  onDiscard,
 }: {
-  count: number;
-  onClose: () => void;
-  onCreate: (d: Drawing) => void;
+  document: Drawing;
   busy: boolean;
+  onClose: () => void;
+  onSave: (name: string) => void;
+  onDiscard: () => void;
 }) {
-  const [name, setName] = useState(count ? `Untitled drawing ${count + 1}` : 'Untitled drawing'),
-    [preset, setPreset] = useState('portrait'),
-    [width, setWidth] = useState(1080),
-    [height, setHeight] = useState(1440),
-    [background, setBackground] = useState('#ffffff'),
-    [transparent, setTransparent] = useState(false),
-    [error, setError] = useState('');
+  const [name, setName] = useState(document.name);
   return (
-    <Modal title="Something starts here" onClose={onClose}>
+    <Modal
+      title="Save your drawing"
+      onClose={() => {
+        if (!busy) onClose();
+      }}
+    >
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          try {
-            onCreate(createDrawing(name, width, height, transparent ? 'transparent' : background));
-          } catch (e) {
-            setError((e as Error).message);
-          }
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (name.trim() && !busy) onSave(name.trim());
         }}
       >
         <label className="field">
@@ -808,79 +841,27 @@ function NewProject({
             required
             maxLength={120}
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            disabled={busy}
+            onChange={(event) => setName(event.target.value)}
           />
         </label>
-        <label className="field">
-          Canvas size
-          <select
-            value={preset}
-            onChange={(e) => {
-              const p = e.target.value;
-              setPreset(p);
-              if (p === 'portrait') {
-                setWidth(1080);
-                setHeight(1440);
-              }
-              if (p === 'square') {
-                setWidth(1024);
-                setHeight(1024);
-              }
-              if (p === 'landscape') {
-                setWidth(1440);
-                setHeight(1080);
-              }
-            }}
-          >
-            <option value="portrait">Portrait · 1080 × 1440</option>
-            <option value="square">Square · 1024 × 1024</option>
-            <option value="landscape">Landscape · 1440 × 1080</option>
-            <option value="custom">Custom dimensions</option>
-          </select>
-        </label>
-        {preset === 'custom' && (
-          <div className="dimensions">
-            <label className="field">
-              Width
-              <input
-                type="number"
-                min="256"
-                max="2048"
-                required
-                value={width}
-                onChange={(e) => setWidth(+e.target.value)}
-              />
-            </label>
-            <label className="field">
-              Height
-              <input
-                type="number"
-                min="256"
-                max="2048"
-                required
-                value={height}
-                onChange={(e) => setHeight(+e.target.value)}
-              />
-            </label>
-          </div>
-        )}
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={transparent}
-            onChange={(e) => setTransparent(e.target.checked)}
-          />
-          Transparent background
-        </label>
-        {!transparent && (
-          <ColorControl label="Background" value={background} onChange={setBackground} />
-        )}
-        <p className="hint">Canvas dimensions and background stay fixed once you start.</p>
-        {error && <p role="alert">{error}</p>}
-        <button className="primary full" type="submit" disabled={busy}>
-          <Icon name="plus" />
-          {busy ? 'Creating…' : 'Create drawing'}
+        <p className="hint">
+          {document.width} ? {document.height} ? White background
+        </p>
+        <button className="primary full" type="submit" disabled={busy || !name.trim()}>
+          {busy ? 'Saving?' : 'Save drawing'}
         </button>
+        <div className="modal-actions">
+          <button type="button" disabled={busy} onClick={onClose}>
+            Keep drawing
+          </button>
+          <button type="button" className="danger" disabled={busy} onClick={onDiscard}>
+            Discard drawing
+          </button>
+        </div>
+        <p className="hint">
+          Discard removes this draft and its automatic backup from this device.
+        </p>
       </form>
     </Modal>
   );
