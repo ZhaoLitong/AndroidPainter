@@ -1,3 +1,4 @@
+import { t, useLanguage, setLanguage, message, recentColorLabel } from '../i18n';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { App as NativeApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -59,6 +60,7 @@ function preferences(): { style: Style; recent: Recent[] } {
   return { style: defaultStyle, recent: [] };
 }
 export function App() {
+  const language = useLanguage();
   const [initial] = useState(preferences),
     [style, setStyle] = useState<Style>(initial.style),
     [recent, setRecent] = useState<Recent[]>(initial.recent),
@@ -239,9 +241,9 @@ export function App() {
   }
   function startDrawing() {
     const names = new Set(entries.map((entry) => entry.document?.name));
-    let name = 'Untitled drawing',
+    let name = t('Untitled drawing'),
       suffix = 2;
-    while (names.has(name)) name = `Untitled drawing ${suffix++}`;
+    while (names.has(name)) name = `${t('Untitled drawing')} ${suffix++}`;
     const draft = { ...createDrawing(name, 1080, 1440, '#ffffff'), needsDetails: true };
     open(draft);
     sizeNewCanvas.current = true;
@@ -302,42 +304,50 @@ export function App() {
               </span>
               painter<span className="brand-dot">.</span>
             </a>
+            <button
+              className="subtle"
+              aria-label="Language / 语言"
+              onClick={() => setLanguage(language === 'en' ? 'zh-CN' : 'en')}
+            >
+              {language === 'en' ? '中文' : 'English'}
+            </button>
             <button className="subtle" onClick={() => setModal('help')}>
-              A little help
+              {t('A little help')}{' '}
             </button>
           </header>
           <main className="gallery">
             <div className="gallery-title">
               <div>
-                <p className="eyebrow">YOUR LITTLE CREATIVE SPACE</p>
+                <p className="eyebrow">{t('YOUR LITTLE CREATIVE SPACE')}</p>
                 <h1>
-                  Make something
-                  <br />
-                  <em>uniquely yours.</em>
+                  {t('Make something')} <br />
+                  <em>{t('uniquely yours.')}</em>
                 </h1>
-                <p className="intro">A blank canvas. A few good tools. Endless possibilities.</p>
+                <p className="intro">
+                  {t('A blank canvas. A few good tools. Endless possibilities.')}
+                </p>
               </div>
               <button className="primary" onClick={startDrawing}>
                 <Icon name="plus" />
-                New drawing
+                {t('New drawing')}{' '}
               </button>
             </div>
             <div className="section-label">
               <h2>
-                Your drawings <span>{entries.length}</span>
+                {t('Your drawings')} <span>{entries.length}</span>
               </h2>
-              <span>Saved on this device</span>
+              <span>{t('Saved on this device')}</span>
             </div>
             {loading ? (
-              <p role="status">Opening your sketchbook…</p>
+              <p role="status">{t('Opening your sketchbook…')}</p>
             ) : (
               <div className="project-grid">
                 <button className="new-card" onClick={startDrawing}>
                   <span>
                     <Icon name="plus" size={30} />
                   </span>
-                  <strong>Start with a blank canvas</strong>
-                  <small>See where your imagination goes</small>
+                  <strong>{t('Start with a blank canvas')}</strong>
+                  <small>{t('See where your imagination goes')}</small>
                 </button>
                 {entries.map((entry) => (
                   <article className="project-card" key={entry.id}>
@@ -351,7 +361,7 @@ export function App() {
                           report((e as Error).message);
                         }
                       }}
-                      aria-label={'Open ' + (entry.document?.name || 'unreadable project')}
+                      aria-label={t('Open ') + (entry.document?.name || t('unreadable project'))}
                     >
                       <div className="project-preview checker">
                         {entry.thumbnail ? (
@@ -362,10 +372,10 @@ export function App() {
                           </span>
                         )}
                       </div>
-                      <strong>{entry.document?.name || 'Unreadable project'}</strong>
+                      <strong>{entry.document?.name || t('Unreadable project')}</strong>
                       <small>
-                        {entry.error ||
-                          new Date(entry.document!.updatedAt).toLocaleDateString(undefined, {
+                        {(entry.error ? message(entry.error) : null) ||
+                          new Date(entry.document!.updatedAt).toLocaleDateString(language, {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',
@@ -374,10 +384,10 @@ export function App() {
                     </button>
                     <div className="project-actions">
                       {entry.document && (
-                        <button onClick={() => setRenaming(entry.document!)}>Rename</button>
+                        <button onClick={() => setRenaming(entry.document!)}>{t('Rename')}</button>
                       )}
                       <button
-                        aria-label={'Delete ' + (entry.document?.name || 'project')}
+                        aria-label={t('Delete ') + (entry.document?.name || t('project'))}
                         onClick={() => setDeleting(entry)}
                       >
                         <Icon name="trash" size={18} />
@@ -389,7 +399,7 @@ export function App() {
             )}
             <footer className="gallery-footer">
               <span className="tiny-dot" />
-              No accounts. No distractions. Just you and your ideas.
+              {t('No accounts. No distractions. Just you and your ideas.')}{' '}
             </footer>
           </main>
         </>
@@ -398,20 +408,20 @@ export function App() {
           <header className="editor-header">
             <button
               className="icon-button"
-              aria-label="Back to drawings"
+              aria-label={t('Back to drawings')}
               onClick={() => void leave()}
             >
               <Icon name="back" />
             </button>
             <button className="document-title" onClick={() => setRenaming(doc)}>
               <strong>{doc.name}</strong>
-              <small role="status">{status}</small>
+              <small role="status">{t(status)}</small>
             </button>
-            {status === 'Save failed' && <button onClick={() => void save()}>Retry</button>}
+            {status === 'Save failed' && <button onClick={() => void save()}>{t('Retry')}</button>}
             <div className="history-buttons">
               <button
                 className="icon-button"
-                aria-label="Undo"
+                aria-label={t('Undo')}
                 disabled={!doc.operations.length}
                 onClick={undo}
               >
@@ -419,7 +429,7 @@ export function App() {
               </button>
               <button
                 className="icon-button"
-                aria-label="Redo"
+                aria-label={t('Redo')}
                 disabled={!redo.length}
                 onClick={redoOnce}
               >
@@ -428,7 +438,7 @@ export function App() {
             </div>
             <button
               className="share-button"
-              aria-label={busy ? 'Exporting PNG' : 'Share'}
+              aria-label={busy ? t('Exporting PNG') : t('Share')}
               disabled={busy}
               onClick={() => void share()}
             >
@@ -437,7 +447,7 @@ export function App() {
             </button>
             <button
               className="icon-button"
-              aria-label="More options"
+              aria-label={t('More options')}
               onClick={() => setModal('menu')}
             >
               <Icon name="more" />
@@ -465,36 +475,39 @@ export function App() {
             onError={report}
           />
           <div className="tool-dock">
-            <div className="tools" role="toolbar" aria-label="Drawing tools">
-              {tools.map((t) => (
+            <div className="tools" role="toolbar" aria-label={t('Drawing tools')}>
+              {tools.map((toolName) => (
                 <button
-                  key={t}
-                  title={t}
-                  aria-label={t[0].toUpperCase() + t.slice(1)}
-                  aria-pressed={tool === t}
-                  className={tool === t ? 'tool selected' : 'tool'}
-                  onClick={() => setTool(t)}
+                  key={toolName}
+                  title={t(toolName)}
+                  aria-label={t(toolName[0].toUpperCase() + toolName.slice(1))}
+                  aria-pressed={tool === toolName}
+                  className={tool === toolName ? 'tool selected' : 'tool'}
+                  onClick={() => setTool(toolName)}
                 >
-                  <Icon name={t} />
-                  <span>{t}</span>
+                  <Icon name={toolName} />
+                  <span>{t(toolName)}</span>
                 </button>
               ))}
             </div>
             <div className="tool-settings">
               <button
                 className="current-color"
-                aria-label="Choose colors"
+                aria-label={t('Choose colors')}
                 onClick={() => setModal('colors')}
               >
                 <span style={{ background: style.color, opacity: style.opacity }} />
-                <span>Color</span>
+                <span>{t('Color')}</span>
               </button>
               <label className="size-slider">
                 <span>
-                  {tool === 'eraser' ? 'Eraser' : 'Pen'} size <b>{activeStyle.width} px</b>
+                  {tool === 'eraser' ? t('Eraser') : t('Pen')} {t('size')}{' '}
+                  <b>
+                    {activeStyle.width} {t('px')}
+                  </b>
                 </span>
                 <input
-                  aria-label="Tool size"
+                  aria-label={t('Tool size')}
                   type="range"
                   min="1"
                   max={tool === 'eraser' ? 256 : 128}
@@ -509,17 +522,17 @@ export function App() {
               {shape && (
                 <>
                   <label className="shape-mode">
-                    Style
+                    {t('Style')}{' '}
                     <select
-                      aria-label="Shape style"
+                      aria-label={t('Shape style')}
                       value={style.mode}
                       onChange={(e) =>
                         setStyle({ ...style, mode: e.target.value as Style['mode'] })
                       }
                     >
-                      <option value="outline">Outline</option>
-                      <option value="fill">Fill</option>
-                      <option value="both">Both</option>
+                      <option value="outline">{t('Outline')}</option>
+                      <option value="fill">{t('Fill')}</option>
+                      <option value="both">{t('Both')}</option>
                     </select>
                   </label>
                   {tool !== 'triangle' && (
@@ -529,7 +542,7 @@ export function App() {
                         checked={style.constrained}
                         onChange={(e) => setStyle({ ...style, constrained: e.target.checked })}
                       />
-                      {tool === 'ellipse' ? 'Circle' : 'Square'}
+                      {tool === 'ellipse' ? t('Circle') : t('Square')}
                     </label>
                   )}
                 </>
@@ -540,10 +553,10 @@ export function App() {
       )}
       {notice && (
         <div className="notice" role="alert">
-          <span>{notice}</span>
+          <span>{message(notice)}</span>
           <button
             className="icon-button"
-            aria-label="Dismiss notification"
+            aria-label={t('Dismiss notification')}
             onClick={() => setNotice('')}
           >
             <Icon name="close" size={18} />
@@ -589,21 +602,21 @@ export function App() {
         />
       )}
       {modal === 'colors' && (
-        <Modal title="Find your color" onClose={() => setModal(null)}>
+        <Modal title={t('Find your color')} onClose={() => setModal(null)}>
           <ColorControl
-            label="Pen & outline"
+            label={t('Pen & outline')}
             value={style.color}
             onChange={(color) => setStyle({ ...style, color })}
           />
           <ColorControl
-            label="Shape fill"
+            label={t('Shape fill')}
             value={style.fill}
             onChange={(fill) => setStyle({ ...style, fill })}
           />
           <label className="field">
-            Opacity <span>{Math.round(style.opacity * 100)}%</span>
+            {t('Opacity')} <span>{Math.round(style.opacity * 100)}%</span>
             <input
-              aria-label="Opacity"
+              aria-label={t('Opacity')}
               type="range"
               min="0"
               max="100"
@@ -611,12 +624,12 @@ export function App() {
               onChange={(e) => setStyle({ ...style, opacity: +e.target.value / 100 })}
             />
           </label>
-          <p className="eyebrow">THE ESSENTIALS</p>
+          <p className="eyebrow">{t('THE ESSENTIALS')}</p>
           <div className="swatches">
             {swatches.map((color) => (
               <button
                 key={color}
-                aria-label={'Use ' + color}
+                aria-label={t('Use ') + color}
                 className={style.color === color ? 'active' : ''}
                 style={{ background: color }}
                 onClick={() => setStyle({ ...style, color })}
@@ -625,12 +638,12 @@ export function App() {
           </div>
           {recent.length > 0 && (
             <>
-              <p className="eyebrow">RECENTLY USED</p>
+              <p className="eyebrow">{t('RECENTLY USED')}</p>
               <div className="swatches">
                 {recent.map((r, i) => (
                   <button
                     key={i}
-                    aria-label={`Use ${r.color} at ${Math.round(r.opacity * 100)} percent`}
+                    aria-label={recentColorLabel(r.color, Math.round(r.opacity * 100))}
                     style={{ background: r.color, opacity: r.opacity }}
                     onClick={() => setStyle({ ...style, ...r })}
                   />
@@ -641,8 +654,14 @@ export function App() {
         </Modal>
       )}
       {modal === 'menu' && (
-        <Modal title="Your canvas" onClose={() => setModal(null)}>
+        <Modal title={t('Your canvas')} onClose={() => setModal(null)}>
           <div className="menu-list">
+            <button
+              aria-label="Language / 语言"
+              onClick={() => setLanguage(language === 'en' ? 'zh-CN' : 'en')}
+            >
+              {language === 'en' ? '中文' : 'English'}
+            </button>
             <button
               onClick={() => {
                 setFitToken((v) => v + 1);
@@ -650,28 +669,28 @@ export function App() {
               }}
             >
               <Icon name="fit" />
-              Fit to screen
+              {t('Fit to screen')}{' '}
             </button>
             <button onClick={() => setModal('clear')}>
               <Icon name="trash" />
-              Clear canvas
+              {t('Clear canvas')}{' '}
             </button>
             <button onClick={() => setModal('help')}>
               <Icon name="palette" />
-              Drawing tips & storage
+              {t('Drawing tips & storage')}{' '}
             </button>
             <button onClick={() => void leave()}>
               <Icon name="back" />
-              Back to drawings
+              {t('Back to drawings')}{' '}
             </button>
           </div>
         </Modal>
       )}
       {modal === 'clear' && (
-        <Modal title="A fresh start?" onClose={() => setModal(null)}>
-          <p>This clears your drawing. You can undo it if you change your mind.</p>
+        <Modal title={t('A fresh start?')} onClose={() => setModal(null)}>
+          <p>{t('This clears your drawing. You can undo it if you change your mind.')}</p>
           <div className="modal-actions">
-            <button onClick={() => setModal(null)}>Keep drawing</button>
+            <button onClick={() => setModal(null)}>{t('Keep drawing')}</button>
             <button
               className="danger"
               onClick={() => {
@@ -679,45 +698,54 @@ export function App() {
                 setModal(null);
               }}
             >
-              Clear canvas
+              {t('Clear canvas')}{' '}
             </button>
           </div>
         </Modal>
       )}
       {modal === 'help' && (
-        <Modal title="A little help" onClose={() => setModal(null)}>
+        <Modal title={t('A little help')} onClose={() => setModal(null)}>
           <div className="help-copy">
             <p>
-              <strong>Make your mark.</strong> Tap for a dot, drag to draw. Choose a shape and drag
-              from one corner to the other. Pick colors, opacity, and sizes in the toolbar.
+              <strong>{t('Make your mark.')}</strong>
+              {t(
+                'Tap for a dot, drag to draw. Choose a shape and drag from one corner to the other. Pick colors, opacity, and sizes in the toolbar.',
+              )}{' '}
             </p>
             <p>
-              <strong>Get closer.</strong> Pinch with two fingers to zoom and pan. Adding a second
-              finger cancels your unfinished stroke. Use Fit to screen to reset the view.
+              <strong>{t('Get closer.')}</strong>
+              {t(
+                'Pinch with two fingers to zoom and pan. Adding a second finger cancels your unfinished stroke. Use Fit to screen to reset the view.',
+              )}{' '}
             </p>
             <p>
-              <strong>Make changes.</strong> The eraser removes ink, including on transparent
-              canvases. Undo restores strokes, shapes, erasing, and clears. Shapes cannot be moved
-              after drawing.
+              <strong>{t('Make changes.')}</strong>
+              {t(
+                'The eraser removes ink, including on transparent canvases. Undo restores strokes, shapes, erasing, and clears. Shapes cannot be moved after drawing.',
+              )}{' '}
             </p>
             <p>
-              <strong>Your work stays here.</strong> Drawings save automatically on this device.
-              Clearing app data or uninstalling removes them. Share a PNG to keep a picture
-              elsewhere; PNGs cannot restore editable history.
+              <strong>{t('Your work stays here.')}</strong>
+              {t(
+                'Drawings save automatically on this device. Clearing app data or uninstalling removes them. Share a PNG to keep a picture elsewhere; PNGs cannot restore editable history.',
+              )}{' '}
             </p>
             <p>
-              <strong>Keep it manageable.</strong> Canvas sizes go up to 2048 × 2048. Each project
-              supports up to 5,000 actions, 250,000 points, and 20 MiB of editable data. Abruptly
-              closing the app may lose changes since its last successful save.
+              <strong>{t('Keep it manageable.')}</strong>
+              {t(
+                'Canvas sizes go up to 2048 × 2048. Each project supports up to 5,000 actions, 250,000 points, and 20 MiB of editable data. Abruptly closing the app may lose changes since its last successful save.',
+              )}{' '}
             </p>
           </div>
         </Modal>
       )}
       {modal === 'leave' && (
-        <Modal title="Your changes are not saved" onClose={() => setModal(null)}>
-          <p>Your last saved version is safe, but leaving now will discard unsaved changes.</p>
+        <Modal title={t('Your changes are not saved')} onClose={() => setModal(null)}>
+          <p>
+            {t('Your last saved version is safe, but leaving now will discard unsaved changes.')}
+          </p>
           <div className="modal-actions">
-            <button onClick={() => void leave()}>Retry save</button>
+            <button onClick={() => void leave()}>{t('Retry save')}</button>
             <button
               className="danger"
               onClick={() => {
@@ -728,19 +756,19 @@ export function App() {
                 void refresh();
               }}
             >
-              Leave without saving
+              {t('Leave without saving')}{' '}
             </button>
           </div>
         </Modal>
       )}
       {deleting && (
-        <Modal title="Delete this drawing?" onClose={() => setDeleting(null)}>
+        <Modal title={t('Delete this drawing?')} onClose={() => setDeleting(null)}>
           <p>
-            “{deleting.document?.name || 'Unreadable project'}” will be permanently removed from
-            this device. This cannot be undone.
+            “{deleting.document?.name || t('Unreadable project')}
+            {t('” will be permanently removed from this device. This cannot be undone.')}{' '}
           </p>
           <div className="modal-actions">
-            <button onClick={() => setDeleting(null)}>Keep it</button>
+            <button onClick={() => setDeleting(null)}>{t('Keep it')}</button>
             <button
               className="danger"
               disabled={busy}
@@ -757,7 +785,7 @@ export function App() {
                 }
               }}
             >
-              Delete drawing
+              {t('Delete drawing')}{' '}
             </button>
           </div>
         </Modal>
@@ -797,7 +825,7 @@ function Rename({
 }) {
   const [value, setValue] = useState(name);
   return (
-    <Modal title="Name your drawing" onClose={onClose}>
+    <Modal title={t('Name your drawing')} onClose={onClose}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -805,7 +833,7 @@ function Rename({
         }}
       >
         <label className="field">
-          Drawing name
+          {t('Drawing name')}{' '}
           <input
             autoFocus
             maxLength={120}
@@ -815,7 +843,7 @@ function Rename({
           />
         </label>
         <button className="primary full" type="submit">
-          Save name
+          {t('Save name')}{' '}
         </button>
       </form>
     </Modal>
@@ -837,7 +865,7 @@ function DrawingDetails({
   const [name, setName] = useState(document.name);
   return (
     <Modal
-      title="Save your drawing"
+      title={t('Save your drawing')}
       onClose={() => {
         if (!busy) onClose();
       }}
@@ -849,7 +877,7 @@ function DrawingDetails({
         }}
       >
         <label className="field">
-          Drawing name
+          {t('Drawing name')}{' '}
           <input
             autoFocus
             required
@@ -860,21 +888,21 @@ function DrawingDetails({
           />
         </label>
         <p className="hint">
-          {document.width} ? {document.height} ? White background
+          {document.width} × {document.height} · {t('White background')}
         </p>
         <button className="primary full" type="submit" disabled={busy || !name.trim()}>
-          {busy ? 'Saving?' : 'Save drawing'}
+          {busy ? t('Saving?') : t('Save drawing')}
         </button>
         <div className="modal-actions">
           <button type="button" disabled={busy} onClick={onClose}>
-            Keep drawing
+            {t('Keep drawing')}{' '}
           </button>
           <button type="button" className="danger" disabled={busy} onClick={onDiscard}>
-            Discard drawing
+            {t('Discard drawing')}{' '}
           </button>
         </div>
         <p className="hint">
-          Discard removes this draft and its automatic backup from this device.
+          {t('Discard removes this draft and its automatic backup from this device.')}{' '}
         </p>
       </form>
     </Modal>

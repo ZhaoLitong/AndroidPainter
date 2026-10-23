@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { useEffect, useState } from 'react';
 import { normalizeHex } from '../drawing/model';
 export function ColorControl({
@@ -20,7 +21,7 @@ export function ColorControl({
       <label>
         {label}
         <input
-          aria-label={label + ' picker'}
+          aria-label={label + t(' picker')}
           type="color"
           value={value}
           onChange={(e) => onChange(e.target.value)}

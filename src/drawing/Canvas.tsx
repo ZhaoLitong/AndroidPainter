@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react';
 import { context, paint, replay, surface } from './renderer';
 import {
@@ -270,10 +271,11 @@ export function DrawingCanvas(props: Props) {
     <div className="canvas-host" ref={host}>
       <canvas
         ref={canvas}
-        aria-label="Drawing canvas. Use one finger to draw and two fingers to pan and zoom."
+        aria-label={t('Drawing canvas. Use one finger to draw and two fingers to pan and zoom.')}
       />
       <span className="canvas-note">
-        {props.document.width} × {props.document.height} · Two fingers to pan & zoom
+        {props.document.width} × {props.document.height}
+        {t('· Two fingers to pan & zoom')}{' '}
       </span>
     </div>
   );

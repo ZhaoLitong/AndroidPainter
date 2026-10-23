@@ -79,6 +79,8 @@ Set secrets securely in your shell or CI secret store, then run `gradlew.bat ass
 
 ## Drawing and storage
 
+- English and Simplified Chinese are supported. Chinese device locales default to Simplified Chinese; other locales default to English. Use the 中文 / English button in the gallery or editor's More options menu to change languages. The preference persists without changing drawing names or artwork. Chinese names are preserved in exported PNG filenames.
+
 - **New drawing** opens a white canvas sized to the available screen area (excluding the header and toolbar) immediately, with no setup or initial save required. Back asks for a name and offers Save drawing, Keep drawing, or Discard drawing. Automatic draft recovery remains enabled; reopened unfinished drafts still ask for details on exit. Existing named drawings continue to autosave and return directly to the gallery.
 
 - Tap for a dot, drag to draw, or choose a geometric shape and drag its bounding box.

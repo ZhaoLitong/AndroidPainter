@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
@@ -12,7 +13,8 @@ export async function shareDrawing(d: Drawing, source?: HTMLCanvasElement) {
     canvas.width = 0;
     canvas.height = 0;
   }
-  const name = (d.name.replace(/[^a-zA-Z0-9 _-]/g, '').slice(0, 60) || 'Drawing') + '.png';
+  const name =
+    (d.name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '').slice(0, 60) || t('Drawing')) + '.png';
   if (Capacitor.isNativePlatform()) {
     const base64 = await new Promise<string>((resolve, reject) => {
       const r = new FileReader();
@@ -27,7 +29,7 @@ export async function shareDrawing(d: Drawing, source?: HTMLCanvasElement) {
       recursive: true,
     });
     try {
-      await Share.share({ title: d.name, files: [file.uri], dialogTitle: 'Share drawing' });
+      await Share.share({ title: d.name, files: [file.uri], dialogTitle: t('Share drawing') });
     } catch (e) {
       if (!/cancel|dismiss/i.test((e as Error).message)) throw e;
     }

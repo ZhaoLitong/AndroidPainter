@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Icon } from './Icon';
 export function Modal({
@@ -30,7 +31,7 @@ export function Modal({
       <section className="modal-content">
         <header>
           <h2>{title}</h2>
-          <button aria-label="Close dialog" className="icon-button" onClick={onClose}>
+          <button aria-label={t('Close dialog')} className="icon-button" onClick={onClose}>
             <Icon name="close" />
           </button>
         </header>
