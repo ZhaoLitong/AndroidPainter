@@ -14,12 +14,19 @@ import {
   type Style,
   type Tool,
 } from '../drawing/model';
+import {
+  colorHistoryLimit,
+  readColorUsage,
+  recordColorUsage,
+  type ColorUsage,
+} from '../drawing/colorUsage';
 import { thumbnail } from '../drawing/renderer';
 import { projects, type ProjectEntry } from '../storage/projects';
 import { cleanExports, shareDrawing } from '../platform/share';
 import { Icon } from '../components/Icon';
 import { Modal } from '../components/Modal';
 import { ColorControl } from '../components/ColorControl';
+import { ColorWheel } from '../components/ColorWheel';
 
 const tools: Tool[] = ['pen', 'eraser', 'line', 'rectangle', 'ellipse', 'triangle'];
 const swatches = [
@@ -34,8 +41,7 @@ const swatches = [
   '#ad7aa5',
   '#b58065',
 ];
-type Recent = { color: string; opacity: number };
-function preferences(): { style: Style; recent: Recent[] } {
+function preferences(): { style: Style; recent: ColorUsage[] } {
   try {
     const p = JSON.parse(localStorage.getItem('painter-preferences') || 'null');
     if (p) {
@@ -45,13 +51,7 @@ function preferences(): { style: Style; recent: Recent[] } {
       });
       return {
         style: p.style,
-        recent: Array.isArray(p.recent)
-          ? p.recent
-              .filter(
-                (r: Recent) => /^#[\da-f]{6}$/i.test(r.color) && r.opacity >= 0 && r.opacity <= 1,
-              )
-              .slice(0, 12)
-          : [],
+        recent: readColorUsage(p.recent),
       };
     }
   } catch {
@@ -61,9 +61,10 @@ function preferences(): { style: Style; recent: Recent[] } {
 }
 export function App() {
   const language = useLanguage();
+  const [colorTarget, setColorTarget] = useState<'color' | 'fill'>('color');
   const [initial] = useState(preferences),
     [style, setStyle] = useState<Style>(initial.style),
-    [recent, setRecent] = useState<Recent[]>(initial.recent),
+    [recent, setRecent] = useState<ColorUsage[]>(initial.recent),
     [tool, setTool] = useState<Tool>('pen'),
     [eraserWidth, setEraserWidth] = useState(32);
   const [doc, setDoc] = useState<Drawing | null>(null),
@@ -257,13 +258,7 @@ export function App() {
       const next = validate(changed(current, [...current.operations, op]));
       setRedo([]);
       update(next);
-      if (op.type !== 'eraser' && op.type !== 'clear')
-        setRecent((prev) =>
-          [
-            { color: op.style.color, opacity: op.style.opacity },
-            ...prev.filter((r) => r.color !== op.style.color || r.opacity !== op.style.opacity),
-          ].slice(0, 12),
-        );
+      setRecent((prev) => recordColorUsage(prev, op));
     } catch (e) {
       report((e as Error).message);
     }
@@ -603,6 +598,22 @@ export function App() {
       )}
       {modal === 'colors' && (
         <Modal title={t('Find your color')} onClose={() => setModal(null)}>
+          <label className="field">
+            {t('Color wheel')}
+            <select
+              aria-label={t('Color wheel target')}
+              value={colorTarget}
+              onChange={(event) => setColorTarget(event.target.value as 'color' | 'fill')}
+            >
+              <option value="color">{t('Pen & outline')}</option>
+              <option value="fill">{t('Shape fill')}</option>
+            </select>
+          </label>
+          <ColorWheel
+            key={colorTarget}
+            value={style[colorTarget]}
+            onChange={(color) => setStyle((previous) => ({ ...previous, [colorTarget]: color }))}
+          />
           <ColorControl
             label={t('Pen & outline')}
             value={style.color}
@@ -630,22 +641,24 @@ export function App() {
               <button
                 key={color}
                 aria-label={t('Use ') + color}
-                className={style.color === color ? 'active' : ''}
+                className={style[colorTarget] === color ? 'active' : ''}
                 style={{ background: color }}
-                onClick={() => setStyle({ ...style, color })}
+                onClick={() => setStyle({ ...style, [colorTarget]: color })}
               />
             ))}
           </div>
           {recent.length > 0 && (
             <>
-              <p className="eyebrow">{t('RECENTLY USED')}</p>
+              <p className="eyebrow">{t('MOST USED')}</p>
               <div className="swatches">
-                {recent.map((r, i) => (
+                {recent.slice(0, colorHistoryLimit).map((r, i) => (
                   <button
                     key={i}
                     aria-label={recentColorLabel(r.color, Math.round(r.opacity * 100))}
                     style={{ background: r.color, opacity: r.opacity }}
-                    onClick={() => setStyle({ ...style, ...r })}
+                    onClick={() =>
+                      setStyle({ ...style, [colorTarget]: r.color, opacity: r.opacity })
+                    }
                   />
                 ))}
               </div>

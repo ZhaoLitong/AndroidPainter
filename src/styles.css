@@ -564,6 +564,35 @@ dialog::backdrop {
   gap: 12px;
   margin: 16px 0 24px;
 }
+.color-wheel {
+  position: relative;
+  width: min(100%, 220px);
+  aspect-ratio: 1;
+  margin: 20px auto;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle closest-side, white, transparent),
+    conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+  touch-action: none;
+  cursor: crosshair;
+}
+.color-wheel-shade {
+  position: absolute;
+  inset: 0;
+  background: black;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.color-wheel-marker {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px #0009;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
 .color-control label {
   font-size: 11px;
   flex: 1;

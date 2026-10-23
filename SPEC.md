@@ -124,7 +124,7 @@ Deliver a signed release APK for direct installation. Produce an Android App Bun
 - Support all 24-bit sRGB color values and an opacity range of 0–100%.
 - Provide hue and saturation/value controls, a color preview, six-digit HEX input, and an opacity slider.
 - Accept HEX with or without `#`, normalize valid values, and keep the previous valid color when input is invalid.
-- Provide common color swatches and the 12 most recently used distinct color/opacity combinations.
+- Provide common color swatches and the 20 most frequently used distinct color/opacity combinations, ranked by completed drawing actions with recency breaking ties. Persist all usage counts across sessions; count visible stroke and fill colors once per action, excluding erasing, clearing, and fully transparent actions.
 - Outline and fill colors are independently configurable for closed shapes.
 - Apply opacity once per complete stroke or shape. Input sampling density and overlapping segments within one stroke must not darken it unexpectedly; separate strokes may overlap and darken normally.
 - Color availability does not promise calibrated or wide-gamut output on every display.
