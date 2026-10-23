@@ -30,6 +30,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The action defaults to "tools platform-tools"; "tools" is obsolete.
+          packages: platform-tools
 
       - name: Install Android build tools
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
@@ -66,7 +69,7 @@ jobs:
           cat >> "$GITHUB_STEP_SUMMARY" <<EOF
           ## Painter APK ready
 
-          [Download the APK artifact]($ARTIFACT_URL), extract the ZIP, and install `app-debug.apk` on your Android phone.
+          [Download the APK artifact]($ARTIFACT_URL), extract the ZIP, and install app-debug.apk on your Android phone.
 
           Requires Android 8.0 or newer and Android System WebView 94 or newer.
 
