@@ -1,4 +1,4 @@
-import { useEffect, useRef, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react';
 import { context, paint, replay, surface } from './renderer';
 import {
   limits,
@@ -11,6 +11,7 @@ import {
 } from './model';
 export type CanvasHandle = { snapshot: () => HTMLCanvasElement };
 type Props = {
+  onMeasure: (width: number, height: number) => void;
   canvasHandle: RefObject<CanvasHandle | null>;
   document: Drawing;
   tool: Tool;
@@ -26,10 +27,12 @@ export function DrawingCanvas(props: Props) {
     redraw = useRef<() => void>(() => {}),
     fit = useRef<() => void>(() => {});
   latest.current = props;
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = host.current!,
       view = canvas.current!,
       d = latest.current.document;
+    const area = container.getBoundingClientRect();
+    if (area.width > 0 && area.height > 0) latest.current.onMeasure(area.width, area.height);
     const committed = surface(d.width, d.height),
       work = surface(d.width, d.height),
       mask = surface(d.width, d.height);
@@ -97,7 +100,7 @@ export function DrawingCanvas(props: Props) {
       if (!frame) frame = requestAnimationFrame(draw);
     }
     function fitCanvas() {
-      base = Math.min((vw - 40) / d.width, (vh - 40) / d.height);
+      base = Math.min(vw / d.width, vh / d.height);
       base = Math.max(0.01, base);
       scale = base;
       x = (vw - d.width * scale) / 2;
@@ -260,7 +263,7 @@ export function DrawingCanvas(props: Props) {
         c.height = 0;
       }
     };
-  }, [props.document.id]);
+  }, [props.document.id, props.document.width, props.document.height]);
   useEffect(() => redraw.current(), [props.document.revision]);
   useEffect(() => fit.current(), [props.fitToken]);
   return (

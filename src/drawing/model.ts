@@ -91,7 +91,7 @@ export function validate(value: unknown): Drawing {
   )
     throw new Error('Invalid project metadata.');
   if (
-    ![d.width, d.height].every((n) => Number.isInteger(n) && n >= 256 && n <= 2048) ||
+    ![d.width, d.height].every((n) => Number.isInteger(n) && n >= 1 && n <= 2048) ||
     !(d.background === 'transparent' || normalizeHex(d.background))
   )
     throw new Error('Invalid canvas settings.');

@@ -1,4 +1,39 @@
 import { test, expect } from '@playwright/test';
+for (const viewport of [
+  { width: 390, height: 844 },
+  { width: 844, height: 390 },
+]) {
+  test(`new canvas fills available screen at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    await page.getByRole('button', { name: 'New drawing', exact: true }).click();
+    const canvas = page.locator('canvas');
+    const area = (await canvas.boundingBox())!;
+    await expect(page.locator('.canvas-note')).toContainText(
+      `${Math.round(area.width)} × ${Math.round(area.height)}`,
+    );
+    const edges = await canvas.evaluate((element) => {
+      const c = element as HTMLCanvasElement,
+        ctx = c.getContext('2d')!;
+      return [
+        [3, 3],
+        [c.width - 4, c.height - 4],
+      ].map(([x, y]) => Array.from(ctx.getImageData(x, y, 1, 1).data));
+    });
+    expect(edges).toEqual([
+      [255, 255, 255, 255],
+      [255, 255, 255, 255],
+    ]);
+    await canvas.click();
+    await page.setViewportSize({ width: viewport.height, height: viewport.width });
+    await expect(page.locator('.canvas-note')).toContainText(
+      `${Math.round(area.width)} × ${Math.round(area.height)}`,
+    );
+    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeEnabled();
+  });
+}
 test('new drawing opens immediately, back can resume or discard a recovered draft', async ({
   page,
 }) => {

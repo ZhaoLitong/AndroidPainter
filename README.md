@@ -79,7 +79,7 @@ Set secrets securely in your shell or CI secret store, then run `gradlew.bat ass
 
 ## Drawing and storage
 
-- **New drawing** opens a white 1080 × 1440 canvas immediately, with no setup or initial save required. Back asks for a name and offers Save drawing, Keep drawing, or Discard drawing. Automatic draft recovery remains enabled; reopened unfinished drafts still ask for details on exit. Existing named drawings continue to autosave and return directly to the gallery.
+- **New drawing** opens a white canvas sized to the available screen area (excluding the header and toolbar) immediately, with no setup or initial save required. Back asks for a name and offers Save drawing, Keep drawing, or Discard drawing. Automatic draft recovery remains enabled; reopened unfinished drafts still ask for details on exit. Existing named drawings continue to autosave and return directly to the gallery.
 
 - Tap for a dot, drag to draw, or choose a geometric shape and drag its bounding box.
 - Two fingers pan and zoom; the second finger cancels the uncommitted stroke. Fit to screen resets the viewport.
@@ -89,7 +89,7 @@ Set secrets securely in your shell or CI secret store, then run `gradlew.bat ass
 - Saves occur after 750 ms of inactivity, with a 5-second maximum interval during completed edits. Backgrounding and normal exit also attempt a save.
 - Each project has a primary file, a previous valid backup, and a staged-write file. The gallery is reconstructed from these files; thumbnails are optional caches.
 - Private projects survive restarts and normal app upgrades. Uninstalling or clearing app data removes them. Automatic Android cloud backup is disabled; PNG sharing preserves the picture, not editable history.
-- Canvas dimensions range from 256 to 2048 pixels per side. Limits are 5,000 operations, 250,000 retained points, and 20 MiB of document JSON. A limit failure cancels the new operation and preserves existing work.
+- Canvas dimensions match the available drawing area in CSS pixels, proportionally capped at 2048 pixels per side. Dimensions stay fixed after creation, including on rotation. Limits are 5,000 operations, 250,000 retained points, and 20 MiB of document JSON. A limit failure cancels the new operation and preserves existing work.
 
 Native sharing exposes only the `exports/` cache directory through FileProvider. Export files older than 24 hours are cleaned on subsequent launches. The app requests no storage/photo permissions. The standard Capacitor Internet manifest permission remains, but the app does not make application network requests.
 

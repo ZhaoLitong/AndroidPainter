@@ -82,6 +82,7 @@ export function App() {
     canvasHandle = useRef<CanvasHandle | null>(null),
     leaving = useRef(false),
     discarding = useRef(false),
+    sizeNewCanvas = useRef(false),
     savedRevision = useRef(-1),
     saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined),
     mounted = useRef(true);
@@ -243,6 +244,7 @@ export function App() {
     while (names.has(name)) name = `Untitled drawing ${suffix++}`;
     const draft = { ...createDrawing(name, 1080, 1440, '#ffffff'), needsDetails: true };
     open(draft);
+    sizeNewCanvas.current = true;
     savedRevision.current = -1;
     setStatus('Draft');
   }
@@ -442,6 +444,18 @@ export function App() {
             </button>
           </header>
           <DrawingCanvas
+            onMeasure={(width, height) => {
+              if (!sizeNewCanvas.current || !docRef.current) return;
+              sizeNewCanvas.current = false;
+              const ratio = Math.min(1, 2048 / Math.max(width, height));
+              const next = {
+                ...docRef.current,
+                width: Math.max(1, Math.round(width * ratio)),
+                height: Math.max(1, Math.round(height * ratio)),
+              };
+              docRef.current = next;
+              setDoc(next);
+            }}
             canvasHandle={canvasHandle}
             document={doc}
             tool={tool}
