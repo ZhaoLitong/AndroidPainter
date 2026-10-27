@@ -1,3 +1,4 @@
+import './polyfills';
 import { t } from './i18n';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
@@ -25,13 +26,12 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err
     );
   }
 }
+// PointerEvent marks the WebView 55 floor (older WebViews are already blocked
+// by Capacitor's native minWebViewVersion check); the other APIs the app needs
+// are either old enough (Canvas 2D, <dialog>) or shimmed in ./polyfills and
+// model.ts (ResizeObserver, crypto.randomUUID).
 const supported =
-  typeof PointerEvent !== 'undefined' &&
-  typeof ResizeObserver !== 'undefined' &&
-  typeof crypto.randomUUID === 'function' &&
-  typeof HTMLDialogElement !== 'undefined' &&
-  typeof HTMLDialogElement.prototype.showModal === 'function' &&
-  !!document.createElement('canvas').getContext('2d');
+  typeof PointerEvent !== 'undefined' && !!document.createElement('canvas').getContext('2d');
 createRoot(document.getElementById('root')!).render(
   supported ? (
     <ErrorBoundary>

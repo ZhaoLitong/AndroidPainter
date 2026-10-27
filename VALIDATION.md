@@ -15,7 +15,7 @@ This is an implemented development version, not a device-certified production re
 
 The local machine has Java 17, not the required Java 21, and no configured Android SDK 36. Native compilation, APK installation, and physical-device checks have not been performed. No signed release APK is included. Run the commands in README.md on a machine with the documented prerequisites, or execute the included GitHub Actions workflow for a debug artifact.
 
-The SDK support floor is configured at API 26, with Chromium-based Android System WebView 94 or newer. This is compatibility configuration, not evidence of testing on Android 8.0. The project targets and compiles with API 36. No distribution or Google Play submission has occurred.
+The SDK support floor is configured at API 26, with Chromium-based Android System WebView 55 or newer. This is compatibility configuration, not evidence of testing on Android 8.0. The project targets and compiles with API 36. No distribution or Google Play submission has occurred.
 
 ## Required before release
 

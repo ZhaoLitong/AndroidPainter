@@ -24,19 +24,19 @@ The browser tests use installed Google Chrome. To install the test browser on a 
 
 ## Build an Android APK
 
-| Tool                           | Project baseline                                     |
-| ------------------------------ | ---------------------------------------------------- |
-| Node.js                        | 22+; local web verification used 26.4.0              |
-| npm                            | Lockfile v3; local verification used 11.17.0         |
-| Capacitor core / CLI / Android | 8.5.3, locked in `package-lock.json`                 |
-| JDK                            | 21, configured in `JAVA_HOME`                        |
-| Android Studio                 | Otter 2025.2.1 or newer                              |
-| Android SDK                    | Platform 36 and Build Tools 36.0.0                   |
-| Android Gradle Plugin          | 8.13.0                                               |
-| Gradle wrapper                 | 8.14.3                                               |
-| Android minimum                | API 26 / Android 8.0                                 |
-| Android System WebView         | Chromium 94 or newer; update WebView on older phones |
-| Compile / target SDK           | API 36                                               |
+| Tool                           | Project baseline                                                                     |
+| ------------------------------ | ------------------------------------------------------------------------------------ |
+| Node.js                        | 22+; local web verification used 26.4.0                                              |
+| npm                            | Lockfile v3; local verification used 11.17.0                                         |
+| Capacitor core / CLI / Android | 8.5.3, locked in `package-lock.json`                                                 |
+| JDK                            | 21, configured in `JAVA_HOME`                                                        |
+| Android Studio                 | Otter 2025.2.1 or newer                                                              |
+| Android SDK                    | Platform 36 and Build Tools 36.0.0                                                   |
+| Android Gradle Plugin          | 8.13.0                                                                               |
+| Gradle wrapper                 | 8.14.3                                                                               |
+| Android minimum                | API 26 / Android 8.0                                                                 |
+| Android System WebView         | Chromium 55 or newer (Chrome 55 / WebView 55); older versions are blocked at startup |
+| Compile / target SDK           | API 36                                                                               |
 
 These settings follow the [official Capacitor 8 upgrade guide](https://capacitorjs.com/docs/updating/8-0) and the installed Capacitor Android build configuration. This app raises Capacitor's API 24 minimum to the specification's API 26 floor. SDK compatibility is not a claim that every device/WebView combination has been tested.
 

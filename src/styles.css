@@ -166,6 +166,7 @@ input[aria-invalid='true'] {
   margin: 0 0 20px;
 }
 h1 {
+  font-size: 36px; /* fallback for clamp() below (WebView 79+) */
   font-size: clamp(36px, 4.3vw, 56px);
   letter-spacing: -2.1px;
   line-height: 1.14;
@@ -337,6 +338,7 @@ h1 em {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 10px 12px; /* fallback for the max()/env() padding below (WebView 79+) */
   padding: 10px max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left));
   flex-shrink: 0;
 }
@@ -482,6 +484,7 @@ h1 em {
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
+  max-width: calc(100% - 24px); /* fallback for min() below (WebView 79+) */
   max-width: min(600px, calc(100% - 24px));
   width: max-content;
   background: #293c31;
@@ -503,6 +506,7 @@ dialog {
   background: #fafaf6;
   color: #29332e;
   padding: 0;
+  width: calc(100% - 28px); /* fallback for min() below (WebView 79+) */
   width: min(460px, calc(100% - 28px));
   max-height: calc(100vh - 48px);
   max-height: calc(100dvh - 48px);
@@ -566,18 +570,30 @@ dialog::backdrop {
 }
 .color-wheel {
   position: relative;
+  width: 220px; /* fallback for min() below (WebView 79+) */
   width: min(100%, 220px);
   aspect-ratio: 1;
   margin: 20px auto;
   border-radius: 50%;
+  background:
+    radial-gradient(circle closest-side, white, transparent), #c3c9bd; /* fallback for the conic-gradient wheel below (WebView 69+) */
   background:
     radial-gradient(circle closest-side, white, transparent),
     conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
   touch-action: none;
   cursor: crosshair;
 }
+@supports not (aspect-ratio: 1) {
+  .color-wheel {
+    height: 220px; /* aspect-ratio needs WebView 88+ */
+  }
+}
 .color-wheel-shade {
   position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0; /* longhand fallback for inset below (WebView 87+) */
   inset: 0;
   background: black;
   border-radius: 50%;

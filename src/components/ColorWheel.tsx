@@ -37,6 +37,10 @@ export function ColorWheel({
     remembered.current = { h: hue, s: saturation };
     onChange(toHex(hue, saturation, brightness));
   };
+  // hasPointerCapture appeared in WebView 59; on older ones assume capture
+  // (single pointer, mouse-like) so picking still tracks drags.
+  const captured = (element: Element, pointerId: number) =>
+    typeof element.hasPointerCapture !== 'function' || element.hasPointerCapture(pointerId);
   const pick = (event: PointerEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - rect.left - rect.width / 2) / (rect.width / 2);
@@ -58,10 +62,10 @@ export function ColorWheel({
           pick(event);
         }}
         onPointerMove={(event) => {
-          if (event.currentTarget.hasPointerCapture(event.pointerId)) pick(event);
+          if (captured(event.currentTarget, event.pointerId)) pick(event);
         }}
         onPointerUp={(event) => {
-          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+          if (captured(event.currentTarget, event.pointerId)) {
             pick(event);
             event.currentTarget.releasePointerCapture(event.pointerId);
           }
